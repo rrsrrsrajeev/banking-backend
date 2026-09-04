@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.abhay.banking_backend.dto.CustomerRequest;
 import com.abhay.banking_backend.entity.Customer;
 import com.abhay.banking_backend.repository.CustomerRepository;
 
@@ -16,8 +17,12 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-    public Customer createCustomer(Customer customer) {
-        return customerRepository.save(customer);
+    public Customer createCustomer(CustomerRequest customer) {
+        Customer c = new Customer();
+        c.setName(customer.getName());
+        c.setEmail(customer.getEmail());
+        c.setPhone(customer.getPhone());
+        return customerRepository.save(c);
     }
 
     public List<Customer> getAllCustomers() {
