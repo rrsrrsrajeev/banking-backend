@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.abhay.banking_backend.dto.CustomerRequest;
+import com.abhay.banking_backend.dto.CustomerResponse;
 import com.abhay.banking_backend.entity.Customer;
 import com.abhay.banking_backend.repository.CustomerRepository;
 
@@ -17,34 +18,67 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-    public Customer createCustomer(CustomerRequest customer) {
-        Customer c = new Customer();
-        c.setName(customer.getName());
-        c.setEmail(customer.getEmail());
-        c.setPhone(customer.getPhone());
-        return customerRepository.save(c);
+    public CustomerResponse createCustomer(CustomerRequest request) {
+
+        Customer customer = new Customer();
+
+        customer.setName(request.getName());
+        customer.setEmail(request.getEmail());
+        customer.setPhone(request.getPhone());
+
+        Customer savedCustomer = customerRepository.save(customer);
+
+        return mapToResponse(savedCustomer);
     }
 
-    public List<Customer> getAllCustomers() {
-        return customerRepository.findAll();
+    public List<CustomerResponse> getAllCustomers() {
+
+        return customerRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    public Customer getCustomerById(Long id) {
-        return customerRepository.findById(id).orElse(null);
+    public CustomerResponse getCustomerById(Long id) {
+
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        return mapToResponse(customer);
     }
 
-    public Customer updateCustomer(Long id, Customer customer) {
-        Customer existingCustomer = customerRepository.findById(id).orElse(null);
-        if (existingCustomer != null) {
-            existingCustomer.setName(customer.getName());
-            existingCustomer.setEmail(customer.getEmail());
-            existingCustomer.setPhone(customer.getPhone());
-            return customerRepository.save(existingCustomer);
-        }
-        return null;
+    public CustomerResponse updateCustomer(
+            Long id,
+            CustomerRequest request) {
+
+        Customer existingCustomer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        existingCustomer.setName(request.getName());
+        existingCustomer.setEmail(request.getEmail());
+        existingCustomer.setPhone(request.getPhone());
+
+        Customer updatedCustomer = customerRepository.save(existingCustomer);
+
+        return mapToResponse(updatedCustomer);
     }
 
     public void deleteCustomer(Long id) {
+
+        if (!customerRepository.existsById(id)) {
+            throw new RuntimeException("Customer not found");
+        }
+
         customerRepository.deleteById(id);
+    }
+
+    private CustomerResponse mapToResponse(Customer customer) {
+
+        return new CustomerResponse(
+                customer.getId(),
+                customer.getName(),
+                customer.getEmail(),
+                customer.getPhone(),
+                customer.getCreatedAt());
     }
 }

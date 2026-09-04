@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.abhay.banking_backend.dto.CustomerRequest;
-import com.abhay.banking_backend.entity.Customer;
+import com.abhay.banking_backend.dto.CustomerResponse;
 import com.abhay.banking_backend.service.CustomerService;
 
 import jakarta.validation.Valid;
@@ -28,26 +28,30 @@ public class CustomerController {
     }
 
     @PostMapping
-    public Customer createCustomer(@Valid @RequestBody CustomerRequest customer) {
-        return customerService.createCustomer(customer);
+    public CustomerResponse createCustomer(
+            @Valid @RequestBody CustomerRequest request) {
+
+        return customerService.createCustomer(request);
     }
 
     @GetMapping
-    public List<Customer> getAllCustomers() {
+    public List<CustomerResponse> getAllCustomers() {
         return customerService.getAllCustomers();
     }
 
     @GetMapping("/{id}")
-    public Customer getCustomerById(@PathVariable Long id) {
+    public CustomerResponse getCustomerById(
+            @PathVariable Long id) {
+
         return customerService.getCustomerById(id);
     }
 
     @PutMapping("/{id}")
-    public Customer updateCustomer(
+    public CustomerResponse updateCustomer(
             @PathVariable Long id,
-            @RequestBody Customer customer) {
+            @Valid @RequestBody CustomerRequest request) {
 
-        return customerService.updateCustomer(id, customer);
+        return customerService.updateCustomer(id, request);
     }
 
     @DeleteMapping("/{id}")
