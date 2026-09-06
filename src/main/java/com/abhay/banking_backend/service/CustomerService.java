@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import com.abhay.banking_backend.dto.CustomerRequest;
 import com.abhay.banking_backend.dto.CustomerResponse;
 import com.abhay.banking_backend.entity.Customer;
+import com.abhay.banking_backend.exception.CustomerNotFoundException;
+import com.abhay.banking_backend.exception.DuplicateEmailException;
 import com.abhay.banking_backend.repository.CustomerRepository;
 
 @Service
@@ -19,7 +21,10 @@ public class CustomerService {
     }
 
     public CustomerResponse createCustomer(CustomerRequest request) {
-
+        if (customerRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new DuplicateEmailException(
+                    "Email already registered");
+        }
         Customer customer = new Customer();
 
         customer.setName(request.getName());
@@ -42,7 +47,7 @@ public class CustomerService {
     public CustomerResponse getCustomerById(Long id) {
 
         Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
 
         return mapToResponse(customer);
     }
@@ -52,8 +57,7 @@ public class CustomerService {
             CustomerRequest request) {
 
         Customer existingCustomer = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-
+                .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
         existingCustomer.setName(request.getName());
         existingCustomer.setEmail(request.getEmail());
         existingCustomer.setPhone(request.getPhone());
@@ -66,7 +70,7 @@ public class CustomerService {
     public void deleteCustomer(Long id) {
 
         if (!customerRepository.existsById(id)) {
-            throw new RuntimeException("Customer not found");
+            throw new CustomerNotFoundException("Customer not found");
         }
 
         customerRepository.deleteById(id);
