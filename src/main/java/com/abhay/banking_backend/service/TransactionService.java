@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.abhay.banking_backend.dto.TransferRequest;
 import com.abhay.banking_backend.entity.Account;
@@ -25,19 +26,17 @@ public class TransactionService {
         this.transactionRepository = transactionRepository;
     }
 
+    @Transactional
     public Transaction transfer(
             Long fromAccountId,
             TransferRequest request) {
 
         Account fromAccount = accountRepository.findById(fromAccountId)
-                .orElseThrow(() -> new RuntimeException(
-                        "Source account not found"));
+                .orElseThrow(() -> new RuntimeException("Source account not found"));
 
         Account toAccount = accountRepository
-                .findByAccountNumber(
-                        request.getToAccountNumber())
-                .orElseThrow(() -> new RuntimeException(
-                        "Destination account not found"));
+                .findByAccountNumber(request.getToAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Destination account not found"));
 
         if (fromAccount.getId().equals(toAccount.getId())) {
             throw new RuntimeException(
@@ -61,10 +60,12 @@ public class TransactionService {
                     "Insufficient balance");
         }
 
+        // Debit source account
         fromAccount.setBalance(
                 fromAccount.getBalance()
                         .subtract(request.getAmount()));
 
+        // Credit destination account
         toAccount.setBalance(
                 toAccount.getBalance()
                         .add(request.getAmount()));
@@ -72,6 +73,7 @@ public class TransactionService {
         accountRepository.save(fromAccount);
         accountRepository.save(toAccount);
 
+        // Create transaction record
         Transaction transaction = new Transaction();
 
         transaction.setTransactionReference(
